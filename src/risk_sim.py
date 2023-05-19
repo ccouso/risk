@@ -1,4 +1,5 @@
 import random
+import numpy as np
 
 
 def get_random_int():
@@ -93,6 +94,7 @@ def battle_2(attackers, defenders):
     return total_loss_attackers, total_loss_defenders
 
 
+
 def get_attacker_dices(attackers):
     if (attackers >= 3):
         attackers_dices = 3
@@ -152,24 +154,59 @@ def generate_battle2(attacker, defender):
         return "Defenders won"
     else:
         return "Attackers won"
+    
+
+def generate_battle3(attacker, defender):
+
+    while attacker > 0 and defender > 0:
+
+        loss_attackers, loss_defenders = battle_2(attacker, defender)
+
+        attacker -= loss_attackers
+        defender -= loss_defenders
+
+    if (attacker == 0):
+        return ("Defenders won", defender)
+    else:
+        return ("Attackers won", attacker)
 
 
 def main():
 
-    num_battles = 10000
+    num_battles = 50000
     defenders_won = 0
     attackers_won = 0
+    array_attackers = []
+    array_defenders = []
+
     # attackers_total_loss, defenders_total_loss = generate_battle(num_battles)
+    attacker = 5
+    defender = 4
+    print("Starting battle: attacker: ", attacker, " defender: ", defender, "\n")
 
     for i in range(num_battles):
-        attacker = 3
-        defender = 3
-        result = generate_battle2(attacker, defender)
+     
+        (result, survivors) = generate_battle3(attacker, defender)
 
         if (result == "Defenders won"):
+            array_defenders.append(survivors)
             defenders_won += 1
         else:
+            array_attackers.append(survivors)
             attackers_won += 1
+
+    np_attackers = np.array(array_attackers)
+    np_defenders = np.array(array_defenders)
+
+    mean_attackers = np.mean(np_attackers)
+    mean_defenders = np.mean(np_defenders)
+
+    print()
+
+    print("Battle summary: Attackers", attacker, " defenders: ", defender, " battle simulations: ", num_battles, "\n")
+
+    print("Mean attackers: ", format(mean_attackers, ".2f"))
+    print("Mean defenders: ", format(mean_defenders, ".2f"))
 
     print("Attackers won: ", attackers_won)
     print("Defenders won: ", defenders_won)

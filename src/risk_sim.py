@@ -1,34 +1,22 @@
 import random
 import numpy as np
+import math
+import os
+
+def remove_file(path):
+
+    if os.path.exists(path):
+        os.remove(path)
+        print(path + " eliminado exitosamente.")
+    else:
+        print("El archivo no existe.")
 
 
 def get_random_int():
     return random.randint(1, 6)
 
 
-
 def play_risk(attackers, defenders):
-
-    attackers_dice = []
-    defenders_dice = []
-
-    for i in range(attackers):
-        attackers_dice.append(get_random_int())
-    for i in range(defenders):
-        defenders_dice.append(get_random_int())
-
-    attackers_dice.sort(reverse=True)
-    defenders_dice.sort(reverse=True)
-    print("Attackers: ", attackers_dice)
-    print("Defenders: ", defenders_dice)
-    for i in range(min(attackers, defenders)):
-        if attackers_dice[i] > defenders_dice[i]:
-            defenders -= 1
-        else:
-            attackers -= 1
-    return attackers, defenders
-
-def play_risk_2(attackers, defenders):
 
     attackers_dice = []
     defenders_dice = []
@@ -52,47 +40,25 @@ def play_risk_2(attackers, defenders):
     return loss_attackers, loss_defenders
 
 
+def battle_sim(attackers, defenders):
 
-def battle():
-    MAX_ATTACKERS = 3
-    MAX_DEFENDERS = 2
-    attackers = 3
-    defenders = 2
-    print("Battle!")
-    while attackers > 0 and defenders > 0:
-        loss_attackers, loss_defenders = play_risk(attackers, defenders)
-
-
-    print("finished battle!")
-    
-    loss_attackers = MAX_ATTACKERS - attackers
-    loss_defenders = MAX_DEFENDERS - defenders
-
-    return loss_attackers, loss_defenders
-
-
-def battle_2(attackers, defenders):
-
-    attackers_dices = get_attacker_dices(attackers)
-    defenders_dices = get_defender_dices(defenders)
     total_loss_attackers = 0
     total_loss_defenders = 0
+
     print("Battle 2!")
 
     while attackers > 0 and defenders > 0:
-        loss_attackers, loss_defenders = play_risk_2(attackers_dices, defenders_dices)
+        attackers_dices = get_attacker_dices(attackers)
+        defenders_dices = get_defender_dices(defenders)
+        loss_attackers, loss_defenders = play_risk(attackers_dices, defenders_dices)
         attackers -= loss_attackers
         defenders -= loss_defenders
         total_loss_attackers += loss_attackers
         total_loss_defenders += loss_defenders
 
-        attackers_dices = get_attacker_dices(attackers)
-        defenders_dices = get_defender_dices(defenders)
-        
     print("finished battle!")
     
     return total_loss_attackers, total_loss_defenders
-
 
 
 def get_attacker_dices(attackers):
@@ -107,6 +73,7 @@ def get_attacker_dices(attackers):
     
     return attackers_dices
 
+
 def get_defender_dices(defenders):
     if (defenders >= 2):
         defenders_dices = 2
@@ -118,102 +85,175 @@ def get_defender_dices(defenders):
     return defenders_dices
 
 
-def generate_battle(num_battles):
-    attackers_total_loss = 0
-    defenders_total_loss = 0
-    for i in range(num_battles):
-        loss_attackers, loss_defenders = battle()
+def battle_sim_only_3_attackers(attacker, defender, TOTAL_BATTLES):
 
-        attackers_total_loss += loss_attackers
-        defenders_total_loss += loss_defenders
-        
-
-    total_loss = attackers_total_loss + defenders_total_loss
-
-    print("Attackers total loss: ", attackers_total_loss)
-    print("Defenders total loss: ", defenders_total_loss)
-    print("Total loss: ", total_loss)
-
-    print("Average attackers loss: ", attackers_total_loss / total_loss)
-    print("Average defenders loss: ", defenders_total_loss / total_loss)
-    print("Number of battles: ", num_battles)
-
-    return attackers_total_loss, defenders_total_loss
-
-
-def generate_battle2(attacker, defender):
-
-    while attacker > 0 and defender > 0:
-        group_attack = get_attacker_dices(attacker)
-        loss_attackers, loss_defenders = battle_2(group_attack, defender)
-
-        attacker -= loss_attackers
-        defender -= loss_defenders
-
-    if (attacker == 0):
-        return "Defenders won"
-    else:
-        return "Attackers won"
-    
-
-def generate_battle3(attacker, defender):
-
-    while attacker > 0 and defender > 0:
-
-        loss_attackers, loss_defenders = battle_2(attacker, defender)
-
-        attacker -= loss_attackers
-        defender -= loss_defenders
-
-    if (attacker == 0):
-        return ("Defenders won", defender)
-    else:
-        return ("Attackers won", attacker)
-
-
-def main():
-
-    num_battles = 50000
     defenders_won = 0
     attackers_won = 0
+
     array_attackers = []
     array_defenders = []
 
-    # attackers_total_loss, defenders_total_loss = generate_battle(num_battles)
-    attacker = 5
-    defender = 4
-    print("Starting battle: attacker: ", attacker, " defender: ", defender, "\n")
+    for battle in range(TOTAL_BATTLES):
 
-    for i in range(num_battles):
-     
-        (result, survivors) = generate_battle3(attacker, defender)
+        attacker_survivors = attacker
+        defender_survivors = defender
 
-        if (result == "Defenders won"):
-            array_defenders.append(survivors)
+        while attacker_survivors > 0 and defender_survivors > 0:
+            group_attack = get_attacker_dices(attacker_survivors)
+            loss_attackers, loss_defenders = battle_sim(group_attack, defender_survivors)
+
+            attacker_survivors -= loss_attackers
+            defender_survivors -= loss_defenders
+
+
+        if (attacker_survivors == 0):
+            array_defenders.append(defender_survivors)
             defenders_won += 1
         else:
-            array_attackers.append(survivors)
+            array_attackers.append(attacker_survivors)
             attackers_won += 1
 
-    np_attackers = np.array(array_attackers)
-    np_defenders = np.array(array_defenders)
+    np_array_attackers = np.array(array_attackers)
+    np_array_defenders = np.array(array_defenders)
 
-    mean_attackers = np.mean(np_attackers)
-    mean_defenders = np.mean(np_defenders)
+    return (np_array_attackers, np_array_defenders, attackers_won, defenders_won)
+    
+
+def battle_sim_Risk_conventional(attacker, defender, TOTAL_BATTLES):
+
+    defenders_won = 0
+    attackers_won = 0
+
+    array_attackers = []
+    array_defenders = []
+
+    for battle in range(TOTAL_BATTLES):
+            
+        attacker_survivors = attacker
+        defender_survivors = defender
+
+        loss_attackers, loss_defenders = battle_sim(attacker, defender)
+
+        attacker_survivors -= loss_attackers
+        defender_survivors -= loss_defenders
+
+        if (attacker_survivors == 0):
+            array_defenders.append(defender_survivors)
+            defenders_won += 1
+        else:
+            array_attackers.append(attacker_survivors)
+            attackers_won += 1
+
+    np_array_attackers = np.array(array_attackers)
+    np_array_defenders = np.array(array_defenders)
+
+    return (np_array_attackers, np_array_defenders, attackers_won, defenders_won)
+
+
+
+def risk_simulator(TOTAL_BATTLES, attacker, defender, type_of_battle):
+
+
+    if(type_of_battle == "conventional"):
+        (np_array_attackers, np_array_defenders, attackers_won, defenders_won) = battle_sim_Risk_conventional(attacker, defender, TOTAL_BATTLES)
+    elif(type_of_battle == "only_3_attackers"):
+        (np_array_attackers, np_array_defenders, attackers_won, defenders_won) = battle_sim_only_3_attackers(attacker, defender, TOTAL_BATTLES)
+
+
+    mean_attackers = np.mean(np_array_attackers)
+    mean_defenders = np.mean(np_array_defenders)
 
     print()
 
-    print("Battle summary: Attackers", attacker, " defenders: ", defender, " battle simulations: ", num_battles, "\n")
+    print("Battle summary: Attackers", attacker, " defenders: ", defender, " battle simulations: ", TOTAL_BATTLES, "\n")
 
     print("Mean attackers: ", format(mean_attackers, ".2f"))
     print("Mean defenders: ", format(mean_defenders, ".2f"))
 
     print("Attackers won: ", attackers_won)
     print("Defenders won: ", defenders_won)
-    print("Prob_attackers: ", attackers_won / num_battles)
-    print("Prob_defenders: ", defenders_won / num_battles)
+
+    prob_attackers = attackers_won / TOTAL_BATTLES
+    prob_defenders = defenders_won / TOTAL_BATTLES
+
+    print("Prob_attackers: ", prob_attackers)
+    print("Prob_defenders: ", prob_defenders)
+
+    
+
+    return (np_array_attackers, np_array_defenders, attackers_won, defenders_won, prob_attackers, prob_defenders)
 
 
+def main():
+    TOTAL_BATTLES = 50000
+    attacker = 10
+    defender = 10
+    type_of_battle = "only_3_attackers"
+
+    RESULT_CVS_FILE_PROB = "results_cvs_prob.txt"
+    RESULT_MEAN_ATTACKERS_FILE = "results_mean_attackers.txt"
+    RESULT_MEAN_DEFENDERS_FILE = "results_mean_defenders.txt"
+    RESULT_ALL_STATISTICS = "results_all_statistics.txt"
+
+
+
+
+    remove_file(RESULT_CVS_FILE_PROB)
+    remove_file(RESULT_MEAN_ATTACKERS_FILE) 
+    remove_file(RESULT_MEAN_DEFENDERS_FILE) 
+    remove_file(RESULT_ALL_STATISTICS)
+
+
+    for at in range(1, attacker + 1): 
+        for de in range(1, defender + 1): 
+            result = risk_simulator(TOTAL_BATTLES, at, de, type_of_battle)
+
+            mean_attackers = np.mean(result[0])
+            if math.isnan(mean_attackers):
+                mean_attackers = 0
+            mean_defenders = np.mean(result[1])
+            if math.isnan(mean_defenders):
+                mean_defenders = 0
+            std_attackers = np.std(result[0])
+            if math.isnan(std_attackers):
+                std_attackers = 0
+            std_defenders = np.std(result[1])    
+            if math.isnan(std_defenders):
+                std_defenders = 0
+
+
+            with open(RESULT_ALL_STATISTICS, "a") as myfile:
+                myfile.write("Attackers: " + str(at) + " Defenders: " + str(de) + " Prob_attackers: " + str(result[4]) + " Prob_defenders: " + str(result[5]) + " Mean_attackers: " + str(mean_attackers) + " Mean_defenders: " + str(mean_defenders) + " Std_attackers: " + str(std_attackers) + " Std_defenders: " + str(std_defenders) + "\n")
+                myfile.close()
+
+
+            with open(RESULT_CVS_FILE_PROB, "a") as myfile:
+                myfile.write(str(result[4]) + ", ")
+                myfile.close()
+
+            with open(RESULT_MEAN_ATTACKERS_FILE, "a") as myfile:
+                myfile.write(str(mean_attackers) + ", ")
+                myfile.close()
+
+            with open(RESULT_MEAN_DEFENDERS_FILE, "a") as myfile:
+                myfile.write(str(mean_defenders) + ", ")
+                myfile.close()
+
+        with open(RESULT_CVS_FILE_PROB, "a") as myfile:
+            myfile.write("\n")
+            myfile.close()
+
+        with open(RESULT_MEAN_ATTACKERS_FILE, "a") as myfile:
+            myfile.write("\n")
+            myfile.close()
+    
+        with open(RESULT_MEAN_DEFENDERS_FILE, "a") as myfile:
+            myfile.write("\n")
+            myfile.close()
+
+    result = risk_simulator(TOTAL_BATTLES, attacker, defender, type_of_battle)
+
+    print(result)
 
 
 if __name__ == "__main__":

@@ -1,6 +1,10 @@
 import numpy as np
 import itertools
 
+
+def calculate_simple_prob(event_A, total):
+    return format(event_A / total, ".4f")
+
 def prob_3_attackers_2_defenders():
 
     ataque_gana_2 = 0
@@ -264,8 +268,3 @@ def prob_1_attackers_1_defenders():
     return(prob_ataque_gana_1, prob_defensa_gana_1)
 
 
-def calculate_simple_prob(event_A, total):
-    return format(event_A / total, ".4f")
-
-
-prob_1_attackers_1_defenders()
